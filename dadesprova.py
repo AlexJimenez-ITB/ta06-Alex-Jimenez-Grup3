@@ -2,9 +2,9 @@ import pandas as pd
 import os
 
 def read_dat_file(file_path, chunksize=10000):
-    # Llegir el fitxer .dat amb pandas en trossos
+    # Llegir el fitxer .dat amb pandas en trossos, utilitzant la primera fila com a encapçalament
     col_names = ['id', 'year', 'month'] + [f'day_{i}' for i in range(1, 32)]
-    chunks = pd.read_csv(file_path, delim_whitespace=True, header=None, names=col_names, chunksize=chunksize)
+    chunks = pd.read_csv(file_path, delim_whitespace=True, names=col_names, chunksize=chunksize, skiprows=1)
     return pd.concat(chunks, ignore_index=True)
 
 def calculate_annual_precipitation(df):
@@ -31,6 +31,22 @@ def calculate_annual_precipitation(df):
     print("Precipitació total i mediana per any:")
     print(annual_precipitation)
 
+    return annual_precipitation
+
+def calculate_annual_variation_rate(annual_precipitation):
+    # Calcular la taxa de variació anual de les precipitacions
+    annual_precipitation['variation_rate'] = annual_precipitation['total_precipitation'].pct_change() * 100
+    print("Taxa de variació anual de les precipitacions:")
+    print(annual_precipitation[['year', 'variation_rate']])
+
+def find_extreme_years(annual_precipitation):
+    # Trobar l'any més sec i més plujós
+    driest_year = annual_precipitation.loc[annual_precipitation['total_precipitation'].idxmin()]
+    wettest_year = annual_precipitation.loc[annual_precipitation['total_precipitation'].idxmax()]
+
+    print(f"L'any més sec és {driest_year['year']} amb {driest_year['total_precipitation']} mm de precipitació.")
+    print(f"L'any més plujós és {wettest_year['year']} amb {wettest_year['total_precipitation']} mm de precipitació.")
+
 def calculate_total_missing_percentage(file_path):
     if not os.path.exists(file_path):
         print(f"Error: El fitxer {file_path} no existeix.")
@@ -52,7 +68,13 @@ def calculate_total_missing_percentage(file_path):
     print(missing_percentage.to_string(float_format=lambda x: f'{x:.2f}%'))
 
     # Calcular la precipitació anual
-    calculate_annual_precipitation(df)
+    annual_precipitation = calculate_annual_precipitation(df)
+
+    # Calcular la taxa de variació anual de les precipitacions
+    calculate_annual_variation_rate(annual_precipitation)
+
+    # Trobar els anys més secs i més plujosos
+    find_extreme_years(annual_precipitation)
 
 # Exemple d'ús
 file_path = '/workspaces/ta06-Alex-Jimenez-Grup3/Todo/Parte_1/precip.P10033.MIROC5.RCP60.2006-2100.REGRESION.dat'
