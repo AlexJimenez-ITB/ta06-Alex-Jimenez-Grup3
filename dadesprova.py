@@ -21,6 +21,7 @@ def calculate_annual_variation_rate(annual_precipitation):
     annual_precipitation['variation_rate'] = annual_precipitation['total_precipitation'].pct_change() * 100
 
 def find_extreme_years(annual_precipitation):
+    annual_precipitation = annual_precipitation[(annual_precipitation['year'] >= 2006) & (annual_precipitation['year'] <= 2100)]
     driest_year = annual_precipitation.loc[annual_precipitation['total_precipitation'].idxmin()]
     wettest_year = annual_precipitation.loc[annual_precipitation['total_precipitation'].idxmax()]
     return driest_year, wettest_year
@@ -37,8 +38,8 @@ def calculate_total_missing_percentage(file_path):
         print(f"Error llegint {file_path}: {e}")
         return None, None, None, None
 
-    missing_counts = (df == -999).sum()
-    total_counts = df.count()
+    missing_counts = (df == -999).sum().sum()
+    total_counts = df.size
     missing_percentage = (missing_counts / total_counts) * 100
 
     annual_precipitation = calculate_annual_precipitation(df)
@@ -49,7 +50,8 @@ def calculate_total_missing_percentage(file_path):
 
 def process_folder(folder_path):
     all_data = pd.DataFrame()
-    all_missing_percentages = pd.Series(dtype=float)
+    total_missing_counts = 0
+    total_counts = 0
 
     for root, _, files in os.walk(folder_path):
         for file in files:
@@ -58,22 +60,23 @@ def process_folder(folder_path):
                 missing_percentage, annual_precipitation, driest_year, wettest_year = calculate_total_missing_percentage(file_path)
                 if missing_percentage is not None:
                     all_data = pd.concat([all_data, annual_precipitation])
-                    all_missing_percentages = all_missing_percentages.add(missing_percentage, fill_value=0)
+                    total_missing_counts += (missing_percentage / 100) * annual_precipitation.size
+                    total_counts += annual_precipitation.size
 
-    all_missing_percentages /= len(all_missing_percentages)
+    overall_missing_percentage = (total_missing_counts / total_counts) * 100
     all_data_grouped = all_data.groupby('year').agg({'total_precipitation': 'sum', 'median_precipitation': 'median'}).reset_index()
     driest_year, wettest_year = find_extreme_years(all_data_grouped)
 
     print("Informe general:")
     print("Percentatge de dades mancants (promig):")
-    print(all_missing_percentages.to_string(float_format=lambda x: f'{x:.2f}%'))
+    print(f'{overall_missing_percentage:.2f}%')
 
     print("\nPrecipitació anual agregada:")
     print(all_data_grouped)
 
     print("\nAny més sec i més plujós:")
-    print(f"L'any més sec és {driest_year['year']} amb {driest_year['total_precipitation']} mm de precipitació.")
-    print(f"L'any més plujós és {wettest_year['year']} amb {wettest_year['total_precipitation']} mm de precipitació.")
+    print(f"L'any més sec és {int(driest_year['year'])} amb {driest_year['total_precipitation']} mm de precipitació.")
+    print(f"L'any més plujós és {int(wettest_year['year'])} amb {wettest_year['total_precipitation']} mm de precipitació.")
 
 # Exemple d'ús
 folder_path = '/workspaces/ta06-Alex-Jimenez-Grup3/Todo/Parte_1'
