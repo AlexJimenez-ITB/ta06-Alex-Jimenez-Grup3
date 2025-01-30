@@ -79,5 +79,5 @@ def process_folder(folder_path):
     print(f"L'any més plujós és {int(wettest_year['year'])} amb {wettest_year['total_precipitation']} mm de precipitació.")
 
 # Exemple d'ús
-folder_path = '/workspaces/ta06-Alex-Jimenez-Grup3/Todo/Parte_1'
+folder_path = '/workspaces/ta06-Alex-Jimenez-Grup3/Todo/'
 process_folder(folder_path)
