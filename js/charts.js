@@ -26,15 +26,20 @@ function createChart(rows) {
         options: {
             scales: {
                 x: {
+                    type: 'linear',
+                    position: 'bottom',
                     title: {
                         display: true,
                         text: 'Año'
                     },
-                    type: 'linear',
-                    position: 'bottom',
                     ticks: {
-                        stepSize: 1
-                    }
+                        stepSize: 1,
+                        callback: function(value) {
+                            return value >= 2006 && value <= 2100 ? value : '';
+                        }
+                    },
+                    min: 2006,
+                    max: 2100
                 },
                 y: {
                     title: {
