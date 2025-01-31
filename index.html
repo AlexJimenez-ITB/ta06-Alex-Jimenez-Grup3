@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen de Precipitación</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Resumen de Precipitación</h1>
+        <img src="images/precipitation_summary.jpg" alt="Resumen de Precipitación" id="summaryImage">
+    </header>
+    <main>
+        <section id="summary">
+            <h2>Resúmenes Estadísticos</h2>
+            <div id="statistics"></div>
+            <button id="exportBtn">Exportar Resumen a CSV</button>
+        </section>
+        <section id="charts">
+            <h2>Gráficos Estadísticos</h2>
+            <canvas id="precipitationChart"></canvas>
+        </section>
+    </main>
+    <script src="js/app.js"></script>
+    <script src="js/charts.js"></script>
+</body>
+</html>
