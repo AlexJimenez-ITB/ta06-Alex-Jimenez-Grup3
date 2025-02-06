@@ -2,97 +2,82 @@ import pandas as pd
 import os
 import logging
 
+# Configuració del logging
+logging.basicConfig(filename='process_log.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
+
 def read_dat_file(file_path, chunksize=10000):
     col_names = ['id', 'year', 'month'] + [f'day_{i}' for i in range(1, 32)]
     chunks = pd.read_csv(file_path, delim_whitespace=True, names=col_names, chunksize=chunksize, skiprows=1)
     return pd.concat(chunks, ignore_index=True)
 
-def validate_files_format(file_paths):
-    # Aquí pots afegir la lògica per validar el format dels fitxers
-    return True
+def read_file(file_path):
+    try:
+        # Llegir el fitxer .dat
+        df = read_dat_file(file_path)
+        logging.info(f"Fitxer {file_path} llegit correctament.")
+        return df
+    except Exception as e:
+        logging.error(f"Error llegint {file_path}: {e}")
+        return None
 
-def process_files(file_paths):
-    dfs = []
-    for file_path in file_paths:
-        try:
-            df = read_dat_file(file_path)
-            dfs.append(df)
-            logging.info(f"File {file_path} read successfully.")
-        except Exception as e:
-            logging.error(f"Error llegint {file_path}: {e}")
-    return dfs
+def validate_file_format(file_path):
+    df = read_file(file_path)
+    if df is not None:
+        # Validar el nombre de columnes i tipus de dades
+        expected_columns = ['id', 'year', 'month'] + [f'day_{i}' for i in range(1, 32)]
+        if list(df.columns) == expected_columns:
+            logging.info(f"El format del fitxer {file_path} és correcte.")
+            return True
+        else:
+            logging.warning(f"El format del fitxer {file_path} no és correcte.")
+            return False
+    return False
 
-def check_data_consistency(df):
+def process_data(df):
+    # Reemplaçar valors mancants
     df.replace(-999, pd.NA, inplace=True)
-    return df
+    # Fondre les columnes de dies en files
+    df_melted = df.melt(id_vars=['id', 'year', 'month'], value_vars=[f'day_{i}' for i in range(1, 32)],
+                        var_name='day', value_name='precipitation')
+    df_melted.dropna(subset=['precipitation'], inplace=True)
+    df_melted['precipitation'] = pd.to_numeric(df_melted['precipitation'], errors='coerce')
+    df_melted.dropna(subset=['precipitation'], inplace=True)
+    return df_melted
 
-def calculate_statistics(dfs):
-    if not dfs:
-        raise ValueError("No hi ha fitxers per processar.")
-    
-    combined_df = pd.concat(dfs, ignore_index=True)
-    
-    # Percentatge de dades mancants
-    missing_data_percentage = (combined_df.isna().sum().sum() / combined_df.size) * 100
-    
-    # Estadístiques anuals
-    combined_df['year'] = combined_df['year'].astype(int)
-    annual_data = combined_df.groupby('year').sum().sum(axis=1)
-    annual_avg = annual_data.mean()
-    annual_totals = annual_data.sum()
-    annual_data_diff = annual_data.diff().mean()
-    
-    wettest_year = annual_data.idxmax()
-    driest_year = annual_data.idxmin()
+def calculate_statistics(df):
+    annual_precipitation = df.groupby('year')['precipitation'].agg(['sum', 'mean', 'median']).reset_index()
+    annual_precipitation.columns = ['year', 'total_precipitation', 'mean_precipitation', 'median_precipitation']
+    return annual_precipitation
 
-    # Estadístiques addicionals
-    monthly_avg = combined_df.groupby('month').mean().mean(axis=1)
-    highest_monthly_avg = monthly_avg.max()
-    lowest_monthly_avg = monthly_avg.min()
-
-    return {
-        "missing_data_percentage": missing_data_percentage,
-        "annual_avg": annual_avg,
-        "annual_totals": annual_totals,
-        "annual_data_diff": annual_data_diff,
-        "wettest_year": wettest_year,
-        "driest_year": driest_year,
-        "highest_monthly_avg": highest_monthly_avg,
-        "lowest_monthly_avg": lowest_monthly_avg
-    }
-
-def main():
-    folder_path = '/workspaces/ta06-Alex-Jimenez-Grup3/Todo/'
-    file_paths = []
-    
-    for root, _, files in os.walk(folder_path):
+def process_subfolder(subfolder_path):
+    all_data = pd.DataFrame()
+    for root, _, files in os.walk(subfolder_path):
         for file in files:
             if file.endswith('.dat'):
-                file_paths.append(os.path.join(root, file))
-
-    if not file_paths:
-        logging.error("No s'han trobat fitxers .dat al directori.")
-        return
-
-    if validate_files_format(file_paths):
-        logging.info("All files have the same format")
-        dfs = process_files(file_paths)
-        if not dfs:
-            logging.error("No data frames were processed.")
-            return
-
-        processed_dfs = [check_data_consistency(df) for df in dfs]
-
-        try:
-            stats = calculate_statistics(processed_dfs)
-            logging.info("Statistics calculated successfully.")
-            for key, value in stats.items():
-                print(f"{key}: {value}")
-        except ValueError as e:
-            logging.error(f"Error calculating statistics: {e}")
+                file_path = os.path.join(root, file)
+                logging.info(f"Processant fitxer: {file_path}")
+                if validate_file_format(file_path):
+                    df = read_file(file_path)
+                    if df is not None:
+                        processed_data = process_data(df)
+                        all_data = pd.concat([all_data, processed_data])
+                        logging.info(f"Dades del fitxer {file_path} processades correctament.")
+    
+    if not all_data.empty:
+        annual_precipitation = calculate_statistics(all_data)
+        output_file = os.path.join(subfolder_path, 'annual_precipitation_summary.csv')
+        annual_precipitation.to_csv(output_file, index=False)
+        logging.info(f"Dades processades i exportades correctament a {output_file}.")
     else:
-        logging.error("Files do not have the same format")
+        logging.warning(f"No s'han processat dades a {subfolder_path}.")
+
+def main(folder_path):
+    for subfolder in os.listdir(folder_path):
+        subfolder_path = os.path.join(folder_path, subfolder)
+        if os.path.isdir(subfolder_path):
+            logging.info(f"Processant subcarpeta: {subfolder_path}")
+            process_subfolder(subfolder_path)
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    main()
+    folder_path = '/workspaces/ta06-Alex-Jimenez-Grup3/Todo'
+    main(folder_path)
