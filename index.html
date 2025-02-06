@@ -4,26 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resumen de Precipitación</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <header>
-        <h1>Resumen de Precipitación</h1>
-        <img src="images/precipitation_summary.jpg" alt="Resumen de Precipitación" id="summaryImage">
+        <h1>Precipitació anual del 2006 al 2100</h1>
+        <img src="output/precipitation_trend.png" alt="Resumen de Precipitación" id="summaryImage">
     </header>
     <main>
         <section id="summary">
-            <h2>Resúmenes Estadísticos</h2>
-            <div id="statistics"></div>
-            <button id="exportBtn">Exportar Resumen a CSV</button>
+            <header>
+                <h1>Taxa de variació Anual de la Precipitació</h1>
+                <img src="output/annual_variation_rate.png" alt="Resumen de Precipitación" id="summaryImage">
+            </header>
+            <header>
+                <h1>Distribució de la Precipitació Anual</h1>
+                <img src="output/precipitation_distribution.png" alt="Resumen de Precipitación" id="summaryImage">
+            </header>
+            <header>
+                <h1>Extrems de Precipitació</h1>
+                <img src="output/extreme_years.png" alt="Resumen de Precipitación" id="summaryImage">
+            </header>
+            <header>
+                <h1>Variabilitat de la precipitació anual</h1>
+                <img src="output/precipitation_variability.png" alt="Resumen de Precipitación" id="summaryImage">
+            </header>
         </section>
-        <section id="charts">
-            <h2>Gráficos Estadísticos</h2>
-            <canvas id="precipitationChart"></canvas>
-        </section>
-    </main>
-    <script src="js/app.js"></script>
-    <script src="js/charts.js"></script>
-</body>
-</html>
+        <section id="trend">
