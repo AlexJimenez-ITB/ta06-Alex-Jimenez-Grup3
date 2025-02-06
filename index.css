@@ -8,7 +8,7 @@ body {
 }
 
 header {
-    background-color: #4CAF50;
+    background-color: #3498db; /* Fondo azul claro */
     color: white;
     text-align: center;
     padding: 1em 0;
@@ -36,13 +36,13 @@ section {
 
 h2 {
     color: #333;
-    border-bottom: 2px solid #4CAF50;
+    border-bottom: 2px solid #3498db; /* Línea inferior azul claro */
     padding-bottom: 10px;
     margin-bottom: 20px;
 }
 
 button {
-    background-color: #4CAF50;
+    background-color: #3498db; /* Fondo azul claro */
     color: white;
     border: none;
     padding: 10px 20px;
@@ -52,11 +52,11 @@ button {
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #2980b9; /* Fondo azul más oscuro al pasar el ratón */
 }
 
 a {
-    color: #4CAF50;
+    color: #3498db; /* Color de enlace azul claro */
     text-decoration: none;
 }
 
@@ -102,7 +102,7 @@ input[type="text"], input[type="email"], textarea {
 }
 
 input[type="submit"] {
-    background-color: #4CAF50;
+    background-color: #3498db; /* Fondo azul claro */
     color: white;
     border: none;
     padding: 10px 20px;
@@ -112,5 +112,5 @@ input[type="submit"] {
 }
 
 input[type="submit"]:hover {
-    background-color: #45a049;
+    background-color: #2980b9; /* Fondo azul más oscuro al pasar el ratón */
 }
